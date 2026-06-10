@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XLVideo - 视频下载器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+            overflow-x: hidden; /* 防止横向滚动 */
+            -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header {
+                padding: 15px 20px;
+                border-radius: 10px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .tabs {
+                gap: 5px;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                flex: 1;
+                text-align: center;
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            }
+
+            .tab-content {
+                padding: 20px 15px;
+                border-radius: 10px;
+            }
+
+            .input-group input {
+                padding: 10px 12px;
+                font-size: 16px; /* 防止iOS自动缩放 */
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 14px;
+                width: 100%; /* 手机端按钮全宽 */
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            }
+
+            .btn-primary {
+                margin-top: 10px;
+            }
+
+            /* 表格改为卡片布局 */
+            .task-table {
+                display: block;
+                font-size: 13px;
+            }
+
+            .task-table thead {
+                display: none; /* 隐藏表头 */
+            }
+
+            .task-table tbody {
+                display: block;
+            }
+
+            .task-table tr {
+                display: block;
+                margin-bottom: 15px;
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+                padding: 15px;
+                border: 1px solid #e8e8ed;
+            }
+
+            .task-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border-bottom: 1px solid #f5f5f7;
+            }
+
+            .task-table td:last-child {
+                border-bottom: none;
+            }
+
+            .task-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #6c757d;
+                margin-right: 10px;
+                min-width: 70px;
+            }
+
+            .url-text {
+                max-width: 200px;
+                word-break: break-all;
+            }
+
+            .action-btns {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .action-btns .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+                flex: 1;
+                min-width: 70px;
+            }
+
+            .progress-bar {
+                height: 18px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .form-row label {
+                min-width: auto;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group .btn {
+                width: 100%;
+            }
+
+            /* 状态徽章优化 */
+            .status-badge {
+                padding: 3px 10px;
+                font-size: 11px;
+            }
+
+            /* 进度条文字优化 */
+            .progress-fill {
+                font-size: 11px;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background-color: #e8e8ed;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1d1d1f;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background-color: #d1d1d6;
+        }
+
+        .tab-btn.active {
+            background-color: white;
+            border-bottom: 2px solid white;
+        }
+
+        .tab-content {
+            display: none;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1d1d1f;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #0071e3;
+            border-width: 2px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+        }
+
+        .btn-primary {
+            background-color: #0071e3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077ed;
+        }
+
+        .btn-secondary {
+            background-color: #e8e8ed;
+            color: #1d1d1f;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d1d6;
+        }
+
+        .btn-danger {
+            background-color: #ff3b30;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #ff453a;
+        }
+
+        .btn-success {
+            background-color: #34c759;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #30b350;
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .task-table th {
+            background-color: #f5f5f7;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #d1d1d6;
+        }
+
+        .task-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e8e8ed;
+        }
+
+        .task-table tr:hover {
+            background-color: #f5f5f7;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e8e8ed;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #0071e3;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btns .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .form-row label {
+            min-width: 120px;
+            font-weight: 500;
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #e8e8ed;
+            color: #1d1d1f;
+        }
+
+        .status-downloading {
+            background-color: #0071e3;
+            color: white;
+        }
+
+        .status-transcoding {
+            background-color: #af52de;
+            color: white;
+        }
+
+        .status-completed {
+            background-color: #34c759;
+            color: white;
+        }
+
+        .status-failed {
+            background-color: #ff3b30;
+            color: white;
+        }
+
+        .status-paused {
+            background-color: #ff9500;
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: #8e8e93;
+            color: white;
+        }
+
+        .url-text {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 XLVideo - 视频下载器</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('home')">主页</button>
+            <button class="tab-btn" onclick="switchTab('settings')">设置</button>
+        </div>
+
+        <!-- 主页标签 -->
+        <div id="home" class="tab-content active">
+            <div class="input-group">
+                <label for="videoUrl">视频链接</label>
+                <input type="text" id="videoUrl" placeholder="请输入视频链接...">
+            </div>
+
+            <div class="input-group">
+                <label for="videoName">视频名称（可选）</label>
+                <input type="text" id="videoName" placeholder="留空则自动识别">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="addTask()">添加任务</button>
+                <button class="btn btn-secondary" onclick="clearCompletedTasks()" style="background-color: #ff9500; color: white;">清空已完成</button>
+            </div>
+
+            <h2 style="margin-top: 30px; margin-bottom: 15px;">下载列表</h2>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>视频名称</th>
+                        <th>链接</th>
+                        <th>进度</th>
+                        <th>状态</th>
+                        <th>类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="taskList">
+                    <!-- 任务列表将在这里动态生成 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 设置标签 -->
+        <div id="settings" class="tab-content">
+            <div class="settings-section">
+                <h3>下载设置</h3>
+                <div class="form-row">
+                    <label>保存目录</label>
+                    <input type="text" id="saveDirectory" readonly>
+                </div>
+                <div class="form-row">
+                    <label>最大并发数</label>
+                    <select id="maxConcurrent">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>转换为MP4</label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="convertToMp4" style="width: auto; margin: 0;">
+                        <span>下载完成后自动将非MP4格式视频转换为MP4</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Cookies 设置（可选）</h3>
+                <div class="form-row">
+                    <label>Cookies 文件</label>
+                    <input type="text" id="cookiesFile" placeholder="选择 cookies.txt 文件路径...">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetSettings()">重置为默认</button>
+                <button class="btn btn-success" onclick="saveSettings()">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换标签
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 移除所有按钮的激活状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 显示选中的标签
+            document.getElementById(tabName).classList.add('active');
+
+            // 激活对应的按钮
+            event.target.classList.add('active');
+        }
+
+        // 添加任务
+        async function addTask() {
+            const url = document.getElementById('videoUrl').value.trim();
+            const customName = document.getElementById('videoName').value.trim();
+
+            if (!url) {
+                alert('请输入视频链接！');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        custom_name: customName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`任务 ${data.task.task_id} 已添加！`);
+                    document.getElementById('videoUrl').value = '';
+                    document.getElementById('videoName').value = '';
+                    loadTasks();
+                } else {
+                    alert('添加任务失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('添加任务失败: ' + error.message);
+            }
+        }
+
+        // 加载任务列表
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    renderTasks(data.tasks || []);
+                } else {
+                    console.error('加载任务失败:', data.error);
+                }
+            } catch (error) {
+                console.error('加载任务列表失败:', error);
+            }
+        }
+
+        // 渲染任务列表
+        function renderTasks(tasks) {
+            const tbody = document.getElementById('taskList');
+            tbody.innerHTML = '';
+
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+
+                // 序号
+                const idCell = document.createElement('td');
+                idCell.setAttribute('data-label', '序号');
+                idCell.textContent = task.task_id;
+                row.appendChild(idCell);
+
+                // 视频名称
+                const nameCell = document.createElement('td');
+                nameCell.setAttribute('data-label', '名称');
+                nameCell.textContent = task.video_name || task.custom_name || '-';
+                row.appendChild(nameCell);
+
+                // 链接
+                const urlCell = document.createElement('td');
+                urlCell.setAttribute('data-label', '链接');
+                urlCell.className = 'url-text';
+                urlCell.textContent = task.url.length > 50 ? task.url.substring(0, 50) + '...' : task.url;
+                urlCell.title = task.url;
+                row.appendChild(urlCell);
+
+                // 进度
+                const progressCell = document.createElement('td');
+                progressCell.setAttribute('data-label', '进度');
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                const progressFill = document.createElement('div');
+                progressFill.className = 'progress-fill';
+                progressFill.style.width = task.progress + '%';
+                progressFill.textContent = Math.round(task.progress) + '%';
+                progressBar.appendChild(progressFill);
+                progressCell.appendChild(progressBar);
+                row.appendChild(progressCell);
+
+                // 状态
+                const statusCell = document.createElement('td');
+                statusCell.setAttribute('data-label', '状态');
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'status-badge';
+
+                // 根据状态设置样式
+                const statusClass = {
+                    '等待中': 'status-pending',
+                    '下载中': 'status-downloading',
+                    '转码中': 'status-transcoding',
+                    '已完成': 'status-completed',
+                    '失败': 'status-failed',
+                    '已暂停': 'status-paused',
+                    '已取消': 'status-cancelled'
+                };
+                statusBadge.className += ' ' + (statusClass[task.status] || '');
+                statusBadge.textContent = task.status;
+                statusCell.appendChild(statusBadge);
+                row.appendChild(statusCell);
+
+                // 下载类型
+                const typeCell = document.createElement('td');
+                typeCell.setAttribute('data-label', '类型');
+                typeCell.textContent = task.download_type || '-';
+                row.appendChild(typeCell);
+
+                // 操作
+                const actionCell = document.createElement('td');
+                actionCell.setAttribute('data-label', '操作');
+                const actionDiv = document.createElement('div');
+                actionDiv.className = 'action-btns';
+
+                // 下载中或转码中：显示暂停和取消按钮
+                if (task.status === '下载中' || task.status === '转码中') {
+                    const pauseBtn = document.createElement('button');
+                    pauseBtn.className = 'btn btn-secondary';
+                    pauseBtn.textContent = '暂停';
+                    pauseBtn.onclick = () => pauseTask(task.task_id);
+                    actionDiv.appendChild(pauseBtn);
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'btn btn-danger';
+                    cancelBtn.textContent = '取消';
+                    cancelBtn.onclick = () => cancelTask(task.task_id);
+                    actionDiv.appendChild(cancelBtn);
+                }
+                // 等待中或已暂停：只显示取消按钮
+                else if (['等待中', '已暂停'].includes(task.status)) {
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'btn btn-danger';
+                    cancelBtn.textContent = '取消';
+                    cancelBtn.onclick = () => cancelTask(task.task_id);
+                    actionDiv.appendChild(cancelBtn);
+                }
+                // 下载完成：显示复制和删除按钮
+                else if (task.status === '已完成') {
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'btn btn-secondary';
+                    copyBtn.textContent = '复制';
+                    copyBtn.onclick = () => copyLink(task.url);
+                    actionDiv.appendChild(copyBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-danger';
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.onclick = () => deleteTask(task.task_id);
+                    actionDiv.appendChild(deleteBtn);
+                }
+                // 失败或其他状态：显示复制和删除按钮
+                else {
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'btn btn-secondary';
+                    copyBtn.textContent = '复制';
+                    copyBtn.onclick = () => copyLink(task.url);
+                    actionDiv.appendChild(copyBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-danger';
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.onclick = () => deleteTask(task.task_id);
+                    actionDiv.appendChild(deleteBtn);
+                }
+
+                actionCell.appendChild(actionDiv);
+                row.appendChild(actionCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // 暂停任务
+        async function pauseTask(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/pause`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadTasks();
+                } else {
+                    alert('暂停任务失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('暂停任务失败: ' + error.message);
+            }
+        }
+
+        // 取消任务
+        async function cancelTask(taskId) {
+            if (!confirm(`确定要取消任务 ${taskId} 吗？`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/cancel`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadTasks();
+                } else {
+                    alert('取消任务失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('取消任务失败: ' + error.message);
+            }
+        }
+
+        // 删除任务
+        async function deleteTask(taskId) {
+            if (!confirm(`确定要删除任务 ${taskId} 的记录吗？\n（不会删除已下载的文件）`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(`任务 ${taskId} 已删除！`);
+                    loadTasks();
+                } else {
+                    showToast('删除任务失败: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('删除任务失败: ' + error.message, 'error');
+            }
+        }
+
+        // 清空所有已完成的任务
+        async function clearCompletedTasks() {
+            if (!confirm('确定要清空所有已完成的任务记录吗？\n（不会删除已下载的文件）')) {
+                return;
+            }
+
+            try {
+                console.log('开始清空已完成任务...');
+
+                const response = await fetch('/api/tasks/clear-completed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('响应状态:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('响应数据:', data);
+
+                if (data.success) {
+                    const count = data.count || 0;
+                    showToast(`已清空 ${count} 个已完成的任务！`);
+                    // 立即刷新任务列表
+                    await loadTasks();
+                } else {
+                    showToast('清空任务失败: ' + (data.error || '未知错误'), 'error');
+                }
+            } catch (error) {
+                console.error('清空任务出错:', error);
+                showToast('清空任务失败: ' + error.message, 'error');
+            }
+        }
+
+        // 复制链接
+        function copyLink(url) {
+            // 方法1: 尝试使用现代 Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('链接已复制到剪贴板！');
+                }).catch(err => {
+                    console.warn('Clipboard API 失败:', err);
+                    // 降级到传统方法
+                    fallbackCopyText(url);
+                });
+            } else {
+                // 降级到传统方法
+                fallbackCopyText(url);
+            }
+        }
+
+        // 传统复制方法（兼容旧浏览器）
+        function fallbackCopyText(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+            textArea.style.padding = '0';
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+            textArea.style.background = 'transparent';
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('链接已复制到剪贴板！');
+                } else {
+                    showToast('复制失败，请手动复制', 'error');
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                showToast('复制失败，请手动复制', 'error');
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // 显示提示消息（替代 alert）
+        function showToast(message, type = 'success') {
+            // 移除已存在的 toast
+            const existingToast = document.querySelector('.toast-message');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: ${type === 'success' ? '#34c759' : '#ff3b30'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 10000;
+                font-size: 14px;
+                animation: slideDown 0.3s ease;
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // 添加动画样式
+        const toastStyle = document.createElement('style');
+        toastStyle.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+            @keyframes slideUp {
+                from {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+            }
+        `;
+        document.head.appendChild(toastStyle);
+
+        // 加载设置
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('saveDirectory').value = data.settings.save_directory;
+                    document.getElementById('maxConcurrent').value = data.settings.max_concurrent_tasks;
+                    document.getElementById('cookiesFile').value = data.settings.cookies_file;
+                    document.getElementById('convertToMp4').checked = data.settings.convert_to_mp4 || false;
+                }
+            } catch (error) {
+                console.error('加载设置失败:', error);
+            }
+        }
+
+        // 保存设置
+        async function saveSettings() {
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        save_directory: document.getElementById('saveDirectory').value,
+                        max_concurrent_tasks: document.getElementById('maxConcurrent').value,
+                        cookies_file: document.getElementById('cookiesFile').value,
+                        convert_to_mp4: document.getElementById('convertToMp4').checked
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('设置已保存！');
+                } else {
+                    showToast('保存设置失败: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('保存设置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 重置设置
+        async function resetSettings() {
+            if (!confirm('确定要重置所有设置为默认值吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings/reset', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('设置已重置为默认值！');
+                    loadSettings();
+                } else {
+                    showToast('重置设置失败: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('重置设置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            loadTasks();
+            loadSettings();
+            
+            // 每秒刷新一次任务列表
+            setInterval(loadTasks, 1000);
+        };
+    </script>
+</body>
+</html>

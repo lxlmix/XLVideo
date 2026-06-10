@@ -1,0 +1,22 @@
+services:
+  xlvideo:
+    build: .
+    container_name: xlvideo
+    ports:
+      - "5000:5000"
+    volumes:
+      # 挂载下载目录到宿主机
+      - ./downloads:/app/downloads
+      # 挂载日志目录到宿主机
+      - ./logs:/app/logs
+      # 挂载配置文件到宿主机（方便修改）
+      - ./config.ini:/app/config.ini
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
