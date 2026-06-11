@@ -112,7 +112,7 @@ class DownloadEngine:
         if re.search(m3u8_pattern, url, re.IGNORECASE):
             self.logger.info(f"检测到 m3u8 链接，使用 N_m3u8DL-RE: {url}")
             return DownloadType.N_M3U8DL_RE
-        if "youtube.com" in url or "youtu.be" in url or "bilibili.com" in url:
+        if "youtube.com" in url or "youtu.be" in url or "douyin" in url or "bilibili.com" in url:
             self.logger.info(f"检测到普通视频链接，使用 yt-dlp: {url}")
             return DownloadType.YT_DLP
         # 其他情况使用 yt-dlp
