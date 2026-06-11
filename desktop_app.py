@@ -852,7 +852,7 @@ class MainWindow(QMainWindow):
         
         # 添加任务
         try:
-            task = self.task_manager.add_task(url, custom_name, {})
+            task = self.task_manager.add_task(url, custom_name)
             self.logger.info(f"成功添加任务: {task.task_id}")
             
             # 清空输入框
