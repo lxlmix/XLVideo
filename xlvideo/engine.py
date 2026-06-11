@@ -112,7 +112,7 @@ class DownloadEngine:
         if re.search(m3u8_pattern, url, re.IGNORECASE):
             self.logger.info(f"检测到 m3u8 链接，使用 N_m3u8DL-RE: {url}")
             return DownloadType.N_M3U8DL_RE
-        if "youtube.com" in url or "youtu.be" in url or "bilibili.com" in url:
+        if "youtube.com" in url or "youtu.be" in url or "douyin" in url or "bilibili.com" in url:
             self.logger.info(f"检测到普通视频链接，使用 yt-dlp: {url}")
             return DownloadType.YT_DLP
         # 其他情况使用 yt-dlp
@@ -279,6 +279,12 @@ class DownloadEngine:
             '--binary-merge',  # 二进制合并
         ])
         
+        # 如果配置了转换为MP4，添加 mux 参数直接输出MP4格式
+        if self.config.get_convert_to_mp4():
+            cmd.extend([
+                '--mux-after-done', 'format=mp4',  # 下载完成后混流为MP4
+            ])
+        
         self.logger.info(f"开始 N_m3u8DL-RE 下载: {' '.join(cmd)}")
         task.update_status(DownloadStatus.DOWNLOADING)
         task.video_name = video_name
@@ -406,27 +412,44 @@ class DownloadEngine:
         try:
             import glob
             # 查找下载的文件（排除临时文件）
+            # 首先尝试使用 video_name 查找
             pattern = os.path.join(save_dir, f"{task.video_name}.*")
             files = glob.glob(pattern)
 
             if not files:
-                self.logger.warning(f"任务 {task.task_id}: 未找到下载的文件进行转换")
-                return
+                # 如果没找到，尝试查找最新的视频文件
+                self.logger.warning(f"任务 {task.task_id}: 未找到预期文件，尝试查找最新视频文件...")
+                all_files = []
+                for ext in ['*.ts', '*.mkv', '*.flv', '*.avi', '*.mov', '*.webm']:
+                    all_files.extend(glob.glob(os.path.join(save_dir, ext)))
+                
+                if all_files:
+                    files = [max(all_files, key=os.path.getmtime)]
+                else:
+                    self.logger.warning(f"任务 {task.task_id}: 未找到任何视频文件进行转换")
+                    return
+
             # 获取最新的文件
             video_file = max(files, key=os.path.getmtime)
             file_ext = os.path.splitext(video_file)[1].lower()
+            
             # 如果已经是MP4格式，不需要转换
             if file_ext == '.mp4':
                 self.logger.info(f"任务 {task.task_id}: 文件已是MP4格式，无需转换")
+                task.update_status(DownloadStatus.COMPLETED)
                 return
+                
             # 检查FFmpeg是否可用
             ffmpeg_path = self.config.get_ffmpeg_path()
             if not ffmpeg_path or not os.path.exists(ffmpeg_path):
                 # 尝试使用系统PATH中的ffmpeg
                 ffmpeg_path = 'ffmpeg'
+                
             # 构建输出文件路径
             output_file = os.path.splitext(video_file)[0] + '.mp4'
             self.logger.info(f"任务 {task.task_id}: 开始将 {file_ext} 转换为 MP4...")
+            self.logger.info(f"源文件: {video_file}")
+            self.logger.info(f"目标文件: {output_file}")
 
             # 构建FFmpeg命令
             cmd = [
@@ -453,9 +476,7 @@ class DownloadEngine:
                 # 删除原文件
                 try:
                     os.remove(video_file)
-
                     self.logger.info(f"任务 {task.task_id}: 已删除原文件 {video_file}")
-
                 except Exception as e:
                     self.logger.warning(f"任务 {task.task_id}: 删除原文件失败: {str(e)}")
 
