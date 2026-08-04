@@ -1,23 +1,29 @@
 import os
 import configparser
+import threading
 
 
 class ConfigManager:
-    """配置管理器 - 单例模式"""
+    """配置管理器 - 单例模式（线程安全）"""
     
     _instance = None
+    _instance_lock = threading.Lock()
     _config = None
     
     def __new__(cls):
-        """确保只有一个配置管理器实例"""
+        """确保只有一个配置管理器实例（线程安全）"""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._load_config()
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._load_config()
         return cls._instance
     
     def _load_config(self):
         """加载配置文件"""
         self._config = configparser.ConfigParser()
+        # 保护配置文件的写入（多个请求线程并发保存设置时防止写坏文件）
+        self._write_lock = threading.Lock()
         
         # 获取配置文件路径（与主程序同目录）
         config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.ini')
@@ -60,7 +66,13 @@ class ConfigManager:
         default_config['webhook'] = {
             'port': '5001'
         }
-        
+
+        # 请求头配置（可选，用于防盗链站点；为空则使用下载器默认）
+        default_config['request'] = {
+            'user_agent': '',
+            'referer': ''
+        }
+
         # 写入配置文件
         with open(config_path, 'w', encoding='utf-8') as f:
             default_config.write(f)
@@ -91,23 +103,24 @@ class ConfigManager:
     
     def set(self, section, key, value):
         """
-        设置配置项并立即保存到文件
+        设置配置项并立即保存到文件（线程安全）
         
         Args:
             section: 配置节名称
             key: 配置键名称
             value: 配置值
         """
-        # 确保节存在
-        if not self._config.has_section(section):
-            self._config.add_section(section)
-        
-        # 设置值
-        self._config.set(section, key, str(value))
-        
-        # 立即保存到文件
-        with open(self.config_path, 'w', encoding='utf-8') as f:
-            self._config.write(f)
+        with self._write_lock:
+            # 确保节存在
+            if not self._config.has_section(section):
+                self._config.add_section(section)
+            
+            # 设置值
+            self._config.set(section, key, str(value))
+            
+            # 立即保存到文件
+            with open(self.config_path, 'w', encoding='utf-8') as f:
+                self._config.write(f)
     
     def get_save_directory(self):
         """获取下载保存目录"""
@@ -154,7 +167,45 @@ class ConfigManager:
     def set_convert_to_mp4(self, enabled: bool):
         """设置是否转换为MP4格式"""
         self.set('download', 'convert_to_mp4', str(enabled).lower())
-    
+
+    def get_user_agent(self):
+        """获取自定义 User-Agent（空字符串表示使用下载器默认）"""
+        return self.get('request', 'user_agent', '') or ''
+
+    def set_user_agent(self, value: str):
+        """设置自定义 User-Agent"""
+        self.set('request', 'user_agent', (value or '').strip())
+
+    def get_referer(self):
+        """获取自定义 Referer（空字符串表示不附加）"""
+        return self.get('request', 'referer', '') or ''
+
+    def set_referer(self, value: str):
+        """设置自定义 Referer"""
+        self.set('request', 'referer', (value or '').strip())
+
+    def get_allowed_directories(self):
+        """
+        获取 docker 镜像内可访问的保存目录白名单。
+
+        Web 端运行在容器内，宿主机目录只有通过 volume 挂载进容器后才能访问。
+        该白名单由环境变量 XLVIDEO_ALLOWED_DIRS 提供（逗号分隔的绝对路径），
+        默认回退为容器内的 /app/downloads（docker-compose 已挂载）。
+        前端保存目录下拉框只能从白名单中选择，避免填写宿主机无法访问的路径。
+        """
+        raw = os.getenv('XLVIDEO_ALLOWED_DIRS', '')
+        dirs = [d.strip() for d in raw.split(',') if d.strip()]
+        # 去重并过滤空值
+        seen = set()
+        result = []
+        for d in dirs:
+            if d not in seen:
+                seen.add(d)
+                result.append(d)
+        if not result:
+            result = ['/app/downloads']
+        return result
+
     def reset_to_default(self):
         """重置为默认配置"""
         self._create_default_config(self.config_path)

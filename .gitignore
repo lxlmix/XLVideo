@@ -37,8 +37,8 @@ env/
 logs/
 *.log
 
-# 配置文件（可选，根据需要调整）
-# config.ini
+# 配置文件（含本机路径，不入库；模板见 config.ini.example）
+config.ini
 
 # 操作系统
 .DS_Store

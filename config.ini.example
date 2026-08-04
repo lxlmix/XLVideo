@@ -1,0 +1,22 @@
+[download]
+save_directory = ./downloads
+max_concurrent_tasks = 3
+convert_to_mp4 = false
+
+[cookies]
+cookies_file =
+
+[ffmpeg]
+ffmpeg_path =
+
+[n_m3u8dl_re]
+n_m3u8dl_re_path =
+
+[webhook]
+port = 5001
+
+[request]
+; 可选：自定义 User-Agent，留空则使用下载器默认
+user_agent =
+; 可选：自定义 Referer，部分防盗链站点需要，留空则不附加
+referer =

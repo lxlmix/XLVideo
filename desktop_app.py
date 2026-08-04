@@ -6,10 +6,9 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem, QHeaderView, QMessageBox, QFileDialog,
     QTabWidget, QTextEdit, QSpinBox, QGroupBox, QFormLayout, QCheckBox
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, QObject
-from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject
+from PyQt6.QtGui import QFont
 import json
-import requests
 from datetime import datetime
 from threading import Thread
 
@@ -164,30 +163,12 @@ class WebhookServer:
             return False
 
     def stop(self):
-        """停止 webhook 服务器"""
+        """停止 webhook 服务器（daemon 线程，进程退出即终止；
+        Flask 的 werkzeug 无法在独立线程中优雅关闭，此处仅置标志位）"""
         self.running = False
         if self.thread:
             self.thread.join(timeout=2)
-        self.logger.info("Webhook 服务器已停止")
-
-class ProgressUpdateThread(QThread):
-    """进度更新线程 - 定期刷新界面"""
-    
-    def __init__(self, task_manager, parent=None):
-        super().__init__(parent)
-        self.task_manager = task_manager
-        self.running = True
-    
-    def run(self):
-        """运行线程"""
-        while self.running:
-            # 发送信号通知主线程更新界面
-            self.msleep(500)  # 每 500ms 更新一次
-    
-    def stop(self):
-        """停止线程"""
-        self.running = False
-
+        self.logger.info("Webhook 服务器已停止（随进程退出）")
 
 class MainWindow(QMainWindow):
     """主窗口类"""
@@ -225,7 +206,15 @@ class MainWindow(QMainWindow):
     def on_webhook_task_received(self, title: str, url: str, metadata: dict):
         """在主线程中处理 Webhook 接收到的任务"""
         try:
-            task = self.task_manager.add_task(url, title)
+            # 把插件抓到的请求头（Referer/UA 等）透传给下载器，防盗链站点必需
+            headers = {}
+            captured_headers = metadata.get('headers') or {}
+            if isinstance(captured_headers, dict):
+                for key in ('Referer', 'User-Agent', 'Origin', 'Cookie'):
+                    value = captured_headers.get(key)
+                    if value:
+                        headers[key] = value
+            task = self.task_manager.add_task(url, title, headers)
             self.logger.info(f"✓ 下载任务已添加 - Task ID: {task.task_id}, Title: {title}")
             self.refresh_task_list()
         except Exception as e:
@@ -868,110 +857,118 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "错误", f"添加任务失败: {str(e)}")
     
     def refresh_task_list(self):
-        """刷新任务列表"""
+        """增量刷新任务列表：行数变化时才增删行，其余只更新数据，
+        避免每秒重建全部控件导致界面闪烁、选中丢失、按钮点空"""
         tasks = self.task_manager.get_all_tasks()
         
-        # 设置表格行数
-        self.task_table.setRowCount(len(tasks))
+        # 记录每行对应的 task_id，用于识别状态变化是否需要重建操作按钮
+        if not hasattr(self, '_row_task_ids'):
+            self._row_task_ids = {}
+        
+        row_count = self.task_table.rowCount()
+        if len(tasks) != row_count:
+            # 行数变化（增删任务）才整体重置
+            self.task_table.setRowCount(len(tasks))
+            self._row_task_ids = {}
         
         for row, task in enumerate(tasks):
+            task_id = task.task_id
+            previous_id = self._row_task_ids.get(row)
+            if previous_id != task_id:
+                # 该行是新增/换位，清空该行残留控件
+                self.task_table.removeCellWidget(row, 3)
+                self.task_table.removeCellWidget(row, 6)
+                self._row_task_ids[row] = task_id
+            
             # 序号
-            self.task_table.setItem(row, 0, QTableWidgetItem(str(task.task_id)))
+            item = self.task_table.item(row, 0)
+            if item is None or item.text() != str(task_id):
+                self.task_table.setItem(row, 0, QTableWidgetItem(str(task_id)))
             
             # 视频名称
             video_name = task.video_name if task.video_name else task.custom_name if task.custom_name else "-"
-            self.task_table.setItem(row, 1, QTableWidgetItem(video_name))
+            item = self.task_table.item(row, 1)
+            if item is None or item.text() != video_name:
+                self.task_table.setItem(row, 1, QTableWidgetItem(video_name))
             
             # 链接（截断显示）
             url_display = task.url[:50] + "..." if len(task.url) > 50 else task.url
-            self.task_table.setItem(row, 2, QTableWidgetItem(url_display))
+            item = self.task_table.item(row, 2)
+            if item is None or item.text() != url_display:
+                self.task_table.setItem(row, 2, QTableWidgetItem(url_display))
             
-            # 进度条
-            progress_bar = QProgressBar()
-            progress_bar.setValue(int(task.get_progress()))
-            progress_bar.setTextVisible(True)
-            self.task_table.setCellWidget(row, 3, progress_bar)
+            # 进度条（复用已有控件，仅更新数值）
+            progress_bar = self.task_table.cellWidget(row, 3)
+            if progress_bar is None:
+                progress_bar = QProgressBar()
+                progress_bar.setTextVisible(True)
+                self.task_table.setCellWidget(row, 3, progress_bar)
+            if int(progress_bar.value()) != int(task.get_progress()):
+                progress_bar.setValue(int(task.get_progress()))
             
             # 状态
-            self.task_table.setItem(row, 4, QTableWidgetItem(task.get_status().value))
+            status_text = task.get_status().value
+            item = self.task_table.item(row, 4)
+            if item is None or item.text() != status_text:
+                self.task_table.setItem(row, 4, QTableWidgetItem(status_text))
+                # 状态变化时重建该行的操作按钮
+                self.task_table.removeCellWidget(row, 6)
             
             # 下载类型
             download_type = task.download_type.value if task.download_type else "-"
-            self.task_table.setItem(row, 5, QTableWidgetItem(download_type))
+            item = self.task_table.item(row, 5)
+            if item is None or item.text() != download_type:
+                self.task_table.setItem(row, 5, QTableWidgetItem(download_type))
             
-            # 操作按钮 - 根据状态显示不同按钮
-            action_widget = QWidget()
-            action_widget.setStyleSheet("background-color: transparent;")
-            action_layout = QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(4, 2, 4, 2)
-            action_layout.setSpacing(4)
+            # 操作按钮 - 已重建或缺失时重新创建
+            if self.task_table.cellWidget(row, 6) is None:
+                self._create_action_widget(row, task)
+    
+    def _create_action_widget(self, row: int, task):
+        """为任务行创建操作按钮（仅首次或状态变化时调用）"""
+        action_widget = QWidget()
+        action_widget.setStyleSheet("background-color: transparent;")
+        action_layout = QHBoxLayout(action_widget)
+        action_layout.setContentsMargins(4, 2, 4, 2)
+        action_layout.setSpacing(4)
+        
+        status = task.get_status()
+        
+        def make_btn(text: str) -> QPushButton:
+            btn = QPushButton(text)
+            btn.setObjectName("secondary")
+            btn.setFixedSize(40, 20)
+            btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
+            return btn
+        
+        # 下载中或转码中：显示暂停和取消按钮
+        if status in [DownloadStatus.DOWNLOADING, DownloadStatus.TRANSCODING]:
+            pause_btn = make_btn("暂停")
+            pause_btn.clicked.connect(lambda checked, tid=task.task_id: self.pause_task(tid))
+            action_layout.addWidget(pause_btn)
             
-            status = task.get_status()
-
+            cancel_btn = make_btn("取消")
+            cancel_btn.clicked.connect(lambda checked, tid=task.task_id: self.cancel_task(tid))
+            action_layout.addWidget(cancel_btn)
+        
+        # 等待中或已暂停：只显示取消按钮
+        elif status in [DownloadStatus.PENDING, DownloadStatus.PAUSED]:
+            cancel_btn = make_btn("取消")
+            cancel_btn.clicked.connect(lambda checked, tid=task.task_id: self.cancel_task(tid))
+            action_layout.addWidget(cancel_btn)
+        
+        # 下载完成 / 失败 / 其他：显示复制链接和删除按钮
+        else:
+            copy_btn = make_btn("复制")
+            copy_btn.clicked.connect(lambda checked, t=task: self.copy_link(t))
+            action_layout.addWidget(copy_btn)
             
-            # 下载中或转码中：显示暂停和取消按钮（文字按钮）
-            if status in [DownloadStatus.DOWNLOADING, DownloadStatus.TRANSCODING]:
-                pause_btn = QPushButton("暂停")
-                pause_btn.setObjectName("secondary")
-                pause_btn.setFixedSize(40, 20)
-                pause_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                pause_btn.clicked.connect(lambda checked, tid=task.task_id: self.pause_task(tid))
-                action_layout.addWidget(pause_btn)
-                
-                cancel_btn = QPushButton("取消")
-                cancel_btn.setObjectName("danger")
-                cancel_btn.setFixedSize(40, 20)
-                cancel_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                cancel_btn.clicked.connect(lambda checked, tid=task.task_id: self.cancel_task(tid))
-                action_layout.addWidget(cancel_btn)
-
-            
-            # 等待中或已暂停：只显示取消按钮
-            elif status in [DownloadStatus.PENDING, DownloadStatus.PAUSED]:
-                cancel_btn = QPushButton("取消")
-                cancel_btn.setObjectName("danger")
-                cancel_btn.setFixedSize(40, 20)
-                cancel_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                cancel_btn.clicked.connect(lambda checked, tid=task.task_id: self.cancel_task(tid))
-                action_layout.addWidget(cancel_btn)
-
-            
-            # 下载完成：显示复制链接和删除按钮
-            elif status == DownloadStatus.COMPLETED:
-                copy_btn = QPushButton("复制")
-                copy_btn.setObjectName("secondary")
-                copy_btn.setFixedSize(40, 20)
-                copy_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                copy_btn.clicked.connect(lambda checked, t=task: self.copy_link(t))
-                action_layout.addWidget(copy_btn)
-                
-                delete_btn = QPushButton("删除")
-                delete_btn.setObjectName("danger")
-                delete_btn.setFixedSize(40, 20)
-                delete_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                delete_btn.clicked.connect(lambda checked, tid=task.task_id: self.delete_task(tid))
-                action_layout.addWidget(delete_btn)
-
-            
-            # 失败或其他状态：显示复制链接和删除按钮
-            else:
-                copy_btn = QPushButton("复制")
-                copy_btn.setObjectName("secondary")
-                copy_btn.setFixedSize(40, 20)
-                copy_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                copy_btn.clicked.connect(lambda checked, t=task: self.copy_link(t))
-                action_layout.addWidget(copy_btn)
-                
-                delete_btn = QPushButton("删除")
-                delete_btn.setObjectName("danger")
-                delete_btn.setFixedSize(40, 20)
-                delete_btn.setStyleSheet("font-size: 14px; font-weight: 500;color: gray;padding: 0px;")
-                delete_btn.clicked.connect(lambda checked, tid=task.task_id: self.delete_task(tid))
-                action_layout.addWidget(delete_btn)
-
-            
-            action_layout.addStretch()
-            self.task_table.setCellWidget(row, 6, action_widget)
+            delete_btn = make_btn("删除")
+            delete_btn.clicked.connect(lambda checked, tid=task.task_id: self.delete_task(tid))
+            action_layout.addWidget(delete_btn)
+        
+        action_layout.addStretch()
+        self.task_table.setCellWidget(row, 6, action_widget)
     
     def pause_task(self, task_id: int):
         """暂停任务"""
@@ -1040,8 +1037,8 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "成功", f"已清空 {count} 个已完成的任务！")
     
     def on_progress_update(self, task_id: int, progress: float):
-        """进度更新回调"""
-        # 在主线程中更新界面
+        """进度更新回调：当前 UI 依赖定时刷新，此回调保留用于后续接入
+        即时进度更新（如信号驱动刷新），避免改动回调注册机制"""
         pass  # 由定时刷新处理
     
     def browse_save_directory(self):

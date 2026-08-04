@@ -159,6 +159,13 @@ Docker Compose：
 ## 🛠️ 配置说明
 
 ### 配置文件 (config.ini)
+配置文件包含本机路径，**不纳入版本控制**。首次使用请复制模板：
+
+```bash
+cp config.ini.example config.ini
+```
+
+Docker 部署同样先创建 `config.ini` 再 `docker compose up`。
 ### 配置项说明
 
 | 配置项 | 说明 | 默认值 |
@@ -170,6 +177,8 @@ Docker Compose：
 | `ffmpeg_path` | FFmpeg 可执行文件路径 | 空（使用系统 PATH） |
 | `n_m3u8dl_re_path` | N_m3u8DL-RE 路径 | 空（使用系统 PATH） |
 | `webhook.port` | Webhook 服务器端口 | `5001` |
+
+> **安全说明**：Web 版默认只监听 `127.0.0.1`（桌面版 Webhook 亦然）。如需局域网/公网访问，设置环境变量 `XLVIDEO_HOST=0.0.0.0`，但请注意当前版本**无鉴权**，请勿暴露到不受信任的网络。
 
 
 ---

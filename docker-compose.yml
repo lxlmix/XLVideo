@@ -9,13 +9,19 @@ services:
       - ./downloads:/app/downloads
       # 挂载日志目录到宿主机
       - ./logs:/app/logs
-      # 挂载配置文件到宿主机（方便修改）
+      # 挂载配置文件到宿主机（方便修改，先复制 config.ini.example 为 config.ini）
       - ./config.ini:/app/config.ini
+      # 如需自定义保存目录，将宿主机目录挂载到容器内的任意路径（例如 /data），
+      # 并把该路径加入下方 XLVIDEO_ALLOWED_DIRS，Web 端设置界面的下拉框即可选择。
+      # - /your/host/path:/data
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
+      - XLVIDEO_HOST=0.0.0.0
+      # 镜像内可访问的保存目录白名单（逗号分隔），Web 端只能从中选择，避免填写宿主机无法访问的路径
+      - XLVIDEO_ALLOWED_DIRS=/app/downloads,/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3

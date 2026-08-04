@@ -5,20 +5,24 @@
 
 import os
 import logging
+import threading
 from logging.handlers import RotatingFileHandler
 
 
 class LogManager:
-    """日志管理器 - 单例模式"""
+    """日志管理器 - 单例模式（线程安全）"""
     
     _instance = None
+    _instance_lock = threading.Lock()
     _logger = None
     
     def __new__(cls):
-        """确保只有一个日志管理器实例"""
+        """确保只有一个日志管理器实例（线程安全）"""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._setup_logger()
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._setup_logger()
         return cls._instance
     
     def _setup_logger(self):

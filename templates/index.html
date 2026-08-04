@@ -434,6 +434,304 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        /* ========== 批量重命名页面样式 ========== */
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 10px 0;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #0071e3;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .breadcrumb-item:hover {
+            background-color: #e8e8ed;
+        }
+
+        .breadcrumb-item.current {
+            color: #1d1d1f;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .breadcrumb-sep {
+            color: #8e8e93;
+            font-size: 12px;
+        }
+
+        .file-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e8e8ed;
+            margin-bottom: 10px;
+        }
+
+        .file-toolbar .toolbar-info {
+            margin-left: auto;
+            font-size: 13px;
+            color: #8e8e93;
+        }
+
+        .file-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e8e8ed;
+            border-radius: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f5f5f7;
+            transition: background 0.1s;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item:hover {
+            background-color: #f5f5f7;
+        }
+
+        .file-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-name.is-dir {
+            font-weight: 500;
+            color: #0071e3;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-right: 12px;
+            white-space: nowrap;
+        }
+
+        .file-rename-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+            background-color: #e8e8ed;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+
+        .file-rename-btn:hover {
+            background-color: #d1d1d6;
+        }
+
+        /* 批量重命名面板 */
+        .batch-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f5f5f7;
+            border-radius: 10px;
+        }
+
+        .batch-panel h3 {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .mode-card {
+            padding: 10px 14px;
+            text-align: center;
+            border: 2px solid #d1d1d6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            background-color: white;
+        }
+
+        .mode-card:hover {
+            border-color: #0071e3;
+        }
+
+        .mode-card.active {
+            border-color: #0071e3;
+            background-color: #0071e3;
+            color: white;
+        }
+
+        .mode-params {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .mode-params.active {
+            display: block;
+        }
+
+        .mode-params .param-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .mode-params .param-row label {
+            min-width: 80px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .mode-params .param-row input,
+        .mode-params .param-row select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d1d6;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* 预览结果 */
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .preview-table th {
+            background-color: #e8e8ed;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .preview-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e8e8ed;
+            font-size: 13px;
+        }
+
+        .preview-table .arrow {
+            color: #8e8e93;
+            text-align: center;
+            width: 40px;
+        }
+
+        .preview-table .unchanged {
+            color: #8e8e93;
+        }
+
+        /* 重命名弹窗 */
+        .rename-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 9000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .rename-modal-overlay.show {
+            display: flex;
+        }
+
+        .rename-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .rename-modal h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .rename-modal .modal-field {
+            margin-bottom: 14px;
+        }
+
+        .rename-modal .modal-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .rename-modal .modal-field input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .rename-modal .modal-fields-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rename-modal .modal-fields-row .modal-field {
+            flex: 1;
+        }
+
+        .rename-modal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -444,6 +742,7 @@
 
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('home')">主页</button>
+            <button class="tab-btn" onclick="switchTab('rename')">批量重命名</button>
             <button class="tab-btn" onclick="switchTab('settings')">设置</button>
         </div>
 
@@ -483,13 +782,175 @@
             </table>
         </div>
 
-        <!-- 设置标签 -->
+        <!-- 批量重命名标签 -->
+        <div id="rename" class="tab-content">
+            <!-- 面包屑导航 -->
+            <div class="breadcrumb" id="renameBreadcrumb">
+                <span class="breadcrumb-item current">选择目录</span>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="file-toolbar">
+                <button class="btn btn-secondary" onclick="renameGoBack()" style="padding: 6px 14px; font-size: 13px;">返回上级</button>
+                <button class="btn btn-secondary" onclick="renameRefresh()" style="padding: 6px 14px; font-size: 13px;">刷新</button>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                    <input type="checkbox" id="renameSelectAll" onchange="renameToggleSelectAll(this.checked)">
+                    <span>全选文件</span>
+                </label>
+                <span class="toolbar-info" id="renameFileInfo">未选择文件</span>
+            </div>
+
+            <!-- 文件列表 -->
+            <div class="file-list" id="renameFileList">
+                <div style="padding: 40px; text-align: center; color: #8e8e93;">
+                    请选择上方目录开始浏览
+                </div>
+            </div>
+
+            <!-- 批量重命名面板 -->
+            <div class="batch-panel" id="batchPanel" style="display: none;">
+                <h3>批量重命名模式</h3>
+                <div class="mode-grid" id="modeGrid">
+                    <div class="mode-card" data-mode="find_replace" onclick="selectRenameMode('find_replace')">查找替换</div>
+                    <div class="mode-card" data-mode="add_prefix" onclick="selectRenameMode('add_prefix')">添加前缀</div>
+                    <div class="mode-card" data-mode="add_suffix" onclick="selectRenameMode('add_suffix')">添加后缀</div>
+                    <div class="mode-card" data-mode="sequential" onclick="selectRenameMode('sequential')">序号重命名</div>
+                    <div class="mode-card" data-mode="delete_chars" onclick="selectRenameMode('delete_chars')">删除字符</div>
+                    <div class="mode-card" data-mode="case_convert" onclick="selectRenameMode('case_convert')">大小写转换</div>
+                    <div class="mode-card" data-mode="regex_replace" onclick="selectRenameMode('regex_replace')">正则替换</div>
+                </div>
+
+                <!-- 模式参数区域 -->
+                <div id="modeParams">
+                    <!-- 查找替换 -->
+                    <div class="mode-params" id="params-find_replace">
+                        <div class="param-row">
+                            <label>查找</label>
+                            <input type="text" id="fr-find" placeholder="要查找的文本">
+                        </div>
+                        <div class="param-row">
+                            <label>替换为</label>
+                            <input type="text" id="fr-replace" placeholder="替换后的文本（留空则删除）">
+                        </div>
+                    </div>
+
+                    <!-- 添加前缀 -->
+                    <div class="mode-params" id="params-add_prefix">
+                        <div class="param-row">
+                            <label>前缀文本</label>
+                            <input type="text" id="pf-text" placeholder="如：旅行_">
+                        </div>
+                    </div>
+
+                    <!-- 添加后缀 -->
+                    <div class="mode-params" id="params-add_suffix">
+                        <div class="param-row">
+                            <label>后缀文本</label>
+                            <input type="text" id="sf-text" placeholder="如：_v2（添加在扩展名前）">
+                        </div>
+                    </div>
+
+                    <!-- 序号重命名 -->
+                    <div class="mode-params" id="params-sequential">
+                        <div class="param-row">
+                            <label>格式</label>
+                            <input type="text" id="sq-format" placeholder="如：文件_{seq}" value="文件_{seq}">
+                        </div>
+                        <div class="param-row">
+                            <label>起始序号</label>
+                            <input type="number" id="sq-start" value="1" min="0" style="max-width: 100px;">
+                            <label style="min-width: 60px; margin-left: 10px;">步长</label>
+                            <input type="number" id="sq-step" value="1" min="1" style="max-width: 80px;">
+                            <label style="min-width: 60px; margin-left: 10px;">补零位数</label>
+                            <input type="number" id="sq-pad" value="2" min="0" max="10" style="max-width: 80px;">
+                        </div>
+                        <small style="color: #888;">使用 {seq} 作为序号占位符，补零位数控制如 01、001 等格式</small>
+                    </div>
+
+                    <!-- 删除字符 -->
+                    <div class="mode-params" id="params-delete_chars">
+                        <div class="param-row">
+                            <label>要删除的字符</label>
+                            <input type="text" id="dc-chars" placeholder="如：【】广告 ">
+                        </div>
+                        <small style="color: #888;">输入的每个字符都会从文件名中删除</small>
+                    </div>
+
+                    <!-- 大小写转换 -->
+                    <div class="mode-params" id="params-case_convert">
+                        <div class="param-row">
+                            <label>转换方式</label>
+                            <select id="cc-case">
+                                <option value="lower">全小写</option>
+                                <option value="upper">全大写</option>
+                                <option value="capitalize">首字母大写</option>
+                                <option value="title">每个单词首字母大写</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 正则替换 -->
+                    <div class="mode-params" id="params-regex_replace">
+                        <div class="param-row">
+                            <label>正则表达式</label>
+                            <input type="text" id="rx-pattern" placeholder="如：(\d{4})年(\d{2})月(\d{2})日">
+                        </div>
+                        <div class="param-row">
+                            <label>替换为</label>
+                            <input type="text" id="rx-replacement" placeholder="如：\1-\2-\3（支持捕获组引用）">
+                        </div>
+                        <small style="color: #888;">支持完整正则语法，$1 / \1 均可引用捕获组</small>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="batch-actions">
+                    <button class="btn btn-secondary" onclick="previewBatchRename()">预览</button>
+                    <button class="btn btn-primary" onclick="executeBatchRename()">执行批量重命名</button>
+                </div>
+
+                <!-- 预览结果 -->
+                <div id="previewResult" style="display: none; margin-top: 16px;">
+                    <h4 style="margin-bottom: 8px; font-size: 14px;">预览结果</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr><th>原文件名</th><th></th><th>新文件名</th></tr>
+                        </thead>
+                        <tbody id="previewBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 重命名弹窗 -->
+        <div class="rename-modal-overlay" id="renameModal">
+            <div class="rename-modal">
+                <h3>重命名文件</h3>
+                <div class="modal-fields-row">
+                    <div class="modal-field" style="flex: 3;">
+                        <label>文件名</label>
+                        <input type="text" id="modalFileName" placeholder="文件名">
+                    </div>
+                    <div class="modal-field" style="flex: 1;">
+                        <label>扩展名</label>
+                        <input type="text" id="modalFileExt" placeholder="ext">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeRenameModal()">取消</button>
+                    <button class="btn btn-primary" onclick="confirmSingleRename()">确认</button>
+                </div>
+            </div>
+        </div>
         <div id="settings" class="tab-content">
             <div class="settings-section">
                 <h3>下载设置</h3>
                 <div class="form-row">
                     <label>保存目录</label>
-                    <input type="text" id="saveDirectory" readonly>
+                    <select id="saveDirectory"></select>
+                    <small style="color: #888; display: block; margin-top: 4px;">
+                        仅可选择镜像内已挂载的目录（docker 可访问）
+                    </small>
                 </div>
                 <div class="form-row">
                     <label>最大并发数</label>
@@ -523,6 +984,21 @@
                 </div>
             </div>
 
+            <div class="settings-section">
+                <h3>请求头设置（可选）</h3>
+                <div class="form-row">
+                    <label>User-Agent</label>
+                    <input type="text" id="userAgent" placeholder="留空则使用下载器默认">
+                </div>
+                <div class="form-row">
+                    <label>Referer</label>
+                    <input type="text" id="referer" placeholder="防盗链站点可能需要，留空则不附加">
+                </div>
+                <small style="color: #888; display: block; margin-top: 4px;">
+                    作为全局默认请求头附加到每个下载任务，可用于绕过部分站点的防盗链校验。
+                </small>
+            </div>
+
             <div class="button-group">
                 <button class="btn btn-secondary" onclick="resetSettings()">重置为默认</button>
                 <button class="btn btn-success" onclick="saveSettings()">保存设置</button>
@@ -547,7 +1023,15 @@
             document.getElementById(tabName).classList.add('active');
 
             // 激活对应的按钮
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            // 进入批量重命名页时加载根目录列表
+            if (tabName === 'rename' && !window._renameInited) {
+                window._renameInited = true;
+                loadRenameDirectories();
+            }
         }
 
         // 添加任务
@@ -561,15 +1045,20 @@
             }
 
             try {
+                // 携带全局 User-Agent / Referer（任务级覆盖，留空则后端回退到全局设置）
+                const s = window.xlSettings || {};
+                const payload = {
+                    url: url,
+                    custom_name: customName,
+                    user_agent: s.user_agent || '',
+                    referer: s.referer || ''
+                };
                 const response = await fetch('/api/tasks', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        url: url,
-                        custom_name: customName
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -967,10 +1456,33 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    document.getElementById('saveDirectory').value = data.settings.save_directory;
-                    document.getElementById('maxConcurrent').value = data.settings.max_concurrent_tasks;
-                    document.getElementById('cookiesFile').value = data.settings.cookies_file;
-                    document.getElementById('convertToMp4').checked = data.settings.convert_to_mp4 || false;
+                    const s = data.settings;
+                    // 保存目录下拉：用后端返回的镜像可访问目录白名单填充，并预选当前值
+                    const sel = document.getElementById('saveDirectory');
+                    sel.innerHTML = '';
+                    const allowed = s.allowed_directories || [s.save_directory];
+                    allowed.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d;
+                        opt.textContent = d;
+                        sel.appendChild(opt);
+                    });
+                    // 若当前目录不在白名单中（如历史配置），仍追加为可选项避免下拉留空
+                    if (s.save_directory && !allowed.includes(s.save_directory)) {
+                        const opt = document.createElement('option');
+                        opt.value = s.save_directory;
+                        opt.textContent = s.save_directory + '（当前）';
+                        sel.appendChild(opt);
+                    }
+                    sel.value = s.save_directory;
+
+                    document.getElementById('maxConcurrent').value = s.max_concurrent_tasks;
+                    document.getElementById('cookiesFile').value = s.cookies_file || '';
+                    document.getElementById('convertToMp4').checked = s.convert_to_mp4 || false;
+                    document.getElementById('userAgent').value = s.user_agent || '';
+                    document.getElementById('referer').value = s.referer || '';
+                    // 缓存全局设置，添加任务时使用
+                    window.xlSettings = s;
                 }
             } catch (error) {
                 console.error('加载设置失败:', error);
@@ -989,7 +1501,9 @@
                         save_directory: document.getElementById('saveDirectory').value,
                         max_concurrent_tasks: document.getElementById('maxConcurrent').value,
                         cookies_file: document.getElementById('cookiesFile').value,
-                        convert_to_mp4: document.getElementById('convertToMp4').checked
+                        convert_to_mp4: document.getElementById('convertToMp4').checked,
+                        user_agent: document.getElementById('userAgent').value.trim(),
+                        referer: document.getElementById('referer').value.trim()
                     })
                 });
 
@@ -997,6 +1511,7 @@
 
                 if (data.success) {
                     showToast('设置已保存！');
+                    loadSettings();
                 } else {
                     showToast('保存设置失败: ' + data.error, 'error');
                 }
@@ -1028,6 +1543,465 @@
                 showToast('重置设置失败: ' + error.message, 'error');
             }
         }
+
+        // ========== 批量重命名功能 ==========
+
+        let renameCurrentPath = '';  // 当前浏览的目录路径
+        let renameSelectedMode = ''; // 当前选择的批量重命名模式
+        let renameModalFilePath = ''; // 当前弹窗重命名的文件路径
+
+        // 加载白名单根目录列表
+        async function loadRenameDirectories() {
+            try {
+                const resp = await fetch('/api/files/list');
+                const data = await resp.json();
+                if (data.success && data.directories.length > 0) {
+                    // 如果只有一个目录，直接进入
+                    if (data.directories.length === 1) {
+                        browseDirectory(data.directories[0].path);
+                    } else {
+                        renderRootDirectories(data.directories);
+                    }
+                }
+            } catch (e) {
+                console.error('加载目录失败:', e);
+            }
+        }
+
+        // 渲染根目录选择列表
+        function renderRootDirectories(dirs) {
+            const list = document.getElementById('renameFileList');
+            list.innerHTML = '';
+            dirs.forEach(d => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-icon">📁</span>
+                    <span class="file-name is-dir">${d.name}</span>
+                `;
+                item.onclick = () => browseDirectory(d.path);
+                list.appendChild(item);
+            });
+            renderBreadcrumb('');
+        }
+
+        // 浏览指定目录
+        async function browseDirectory(path) {
+            try {
+                const resp = await fetch(`/api/files/list?path=${encodeURIComponent(path)}`);
+                const data = await resp.json();
+                if (!data.success) {
+                    showToast('加载目录失败: ' + data.error, 'error');
+                    return;
+                }
+                renameCurrentPath = data.current || path;
+                renderBreadcrumb(renameCurrentPath);
+                renderFileList(data.directories, data.files);
+            } catch (e) {
+                showToast('加载目录失败: ' + e.message, 'error');
+            }
+        }
+
+        // 渲染面包屑导航
+        function renderBreadcrumb(path) {
+            const bc = document.getElementById('renameBreadcrumb');
+            bc.innerHTML = '';
+
+            if (!path) {
+                bc.innerHTML = '<span class="breadcrumb-item current">选择目录</span>';
+                return;
+            }
+
+            // 获取白名单根目录
+            const allowed = (window.xlSettings && window.xlSettings.allowed_directories) || [];
+            // 找到匹配的根目录
+            let rootDir = '';
+            for (const d of allowed) {
+                if (path === d || path.startsWith(d + '/') || path.startsWith(d + '\\')) {
+                    rootDir = d;
+                    break;
+                }
+            }
+
+            // 添加根目录链接
+            if (rootDir) {
+                const rootItem = document.createElement('span');
+                rootItem.className = 'breadcrumb-item';
+                rootItem.textContent = rootDir;
+                rootItem.onclick = () => browseDirectory(rootDir);
+                bc.appendChild(rootItem);
+
+                // 提取子路径部分
+                const subPath = path.substring(rootDir.length).replace(/^[\/\\]+/, '');
+                if (subPath) {
+                    const parts = subPath.split(/[\/\\]/);
+                    let curPath = rootDir;
+                    parts.forEach((part, i) => {
+                        curPath = curPath + '/' + part;
+                        const sep = document.createElement('span');
+                        sep.className = 'breadcrumb-sep';
+                        sep.textContent = '/';
+                        bc.appendChild(sep);
+
+                        const item = document.createElement('span');
+                        item.className = i === parts.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
+                        item.textContent = part;
+                        if (i < parts.length - 1) {
+                            const p = curPath;
+                            item.onclick = () => browseDirectory(p);
+                        }
+                        bc.appendChild(item);
+                    });
+                }
+            } else {
+                // 不在白名单中，直接显示完整路径
+                const item = document.createElement('span');
+                item.className = 'breadcrumb-item current';
+                item.textContent = path;
+                bc.appendChild(item);
+            }
+        }
+
+        // 渲染文件列表
+        function renderFileList(directories, files) {
+            const list = document.getElementById('renameFileList');
+            list.innerHTML = '';
+
+            if (directories.length === 0 && files.length === 0) {
+                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #8e8e93;">空目录</div>';
+                return;
+            }
+
+            // 先渲染目录
+            directories.forEach(d => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span style="width: 16px;"></span>
+                    <span class="file-icon">📁</span>
+                    <span class="file-name is-dir">${d.name}</span>
+                `;
+                item.onclick = () => browseDirectory(d.path);
+                list.appendChild(item);
+            });
+
+            // 渲染文件
+            files.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = f.path;
+                checkbox.onclick = (e) => e.stopPropagation();
+                checkbox.onchange = updateRenameFileInfo;
+                item.appendChild(checkbox);
+
+                const icon = document.createElement('span');
+                icon.className = 'file-icon';
+                icon.textContent = getFileIcon(f.ext);
+                item.appendChild(icon);
+
+                const name = document.createElement('span');
+                name.className = 'file-name';
+                name.textContent = f.name;
+                item.appendChild(name);
+
+                const meta = document.createElement('span');
+                meta.className = 'file-meta';
+                meta.textContent = formatFileSize(f.size) + ' · ' + f.modified;
+                item.appendChild(meta);
+
+                const btn = document.createElement('button');
+                btn.className = 'file-rename-btn';
+                btn.textContent = '重命名';
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    openRenameModal(f.path, f.base, f.ext);
+                };
+                item.appendChild(btn);
+
+                list.appendChild(item);
+            });
+        }
+
+        function getFileIcon(ext) {
+            const videoExts = ['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'ts', 'm4v', 'webm'];
+            const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+            const docExts = ['txt', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+            const audioExts = ['mp3', 'wav', 'flac', 'aac', 'ogg'];
+            ext = ext.toLowerCase();
+            if (videoExts.includes(ext)) return '🎬';
+            if (imgExts.includes(ext)) return '🖼️';
+            if (docExts.includes(ext)) return '📄';
+            if (audioExts.includes(ext)) return '🎵';
+            return '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+            return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+        }
+
+        // 返回上级目录
+        function renameGoBack() {
+            if (!renameCurrentPath) return;
+            const parent = renameCurrentPath.replace(/[\/\\][^\/\\]+$/, '');
+            if (parent && parent !== renameCurrentPath) {
+                browseDirectory(parent);
+            } else {
+                loadRenameDirectories();
+            }
+        }
+
+        // 刷新当前目录
+        function renameRefresh() {
+            if (renameCurrentPath) {
+                browseDirectory(renameCurrentPath);
+            } else {
+                loadRenameDirectories();
+            }
+        }
+
+        // 全选/取消全选文件
+        function renameToggleSelectAll(checked) {
+            document.querySelectorAll('#renameFileList input[type="checkbox"]').forEach(cb => {
+                cb.checked = checked;
+            });
+            updateRenameFileInfo();
+        }
+
+        // 更新文件信息
+        function updateRenameFileInfo() {
+            const selected = getSelectedFiles();
+            const info = document.getElementById('renameFileInfo');
+            if (selected.length > 0) {
+                info.textContent = `已选择 ${selected.length} 个文件`;
+                document.getElementById('batchPanel').style.display = 'block';
+            } else {
+                info.textContent = '未选择文件';
+                document.getElementById('batchPanel').style.display = 'none';
+            }
+        }
+
+        // 获取选中的文件路径列表
+        function getSelectedFiles() {
+            return Array.from(document.querySelectorAll('#renameFileList input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+        }
+
+        // 选择批量重命名模式
+        function selectRenameMode(mode) {
+            renameSelectedMode = mode;
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.toggle('active', card.dataset.mode === mode);
+            });
+            document.querySelectorAll('.mode-params').forEach(p => {
+                p.classList.remove('active');
+            });
+            const paramsEl = document.getElementById('params-' + mode);
+            if (paramsEl) paramsEl.classList.add('active');
+            // 切换模式时清空预览
+            document.getElementById('previewResult').style.display = 'none';
+        }
+
+        // 收集当前模式的参数
+        function getModeParams(mode) {
+            switch (mode) {
+                case 'find_replace':
+                    return { find: val('fr-find'), replace: val('fr-replace') };
+                case 'add_prefix':
+                    return { prefix: val('pf-text') };
+                case 'add_suffix':
+                    return { suffix: val('sf-text') };
+                case 'sequential':
+                    return { format: val('sq-format'), start: val('sq-start'), step: val('sq-step'), pad: val('sq-pad') };
+                case 'delete_chars':
+                    return { chars: val('dc-chars') };
+                case 'case_convert':
+                    return { case: val('cc-case') };
+                case 'regex_replace':
+                    return { pattern: val('rx-pattern'), replacement: val('rx-replacement') };
+                default:
+                    return {};
+            }
+        }
+
+        function val(id) {
+            const el = document.getElementById(id);
+            return el ? el.value : '';
+        }
+
+        // 预览批量重命名
+        async function previewBatchRename() {
+            const files = getSelectedFiles();
+            if (files.length === 0) {
+                showToast('请先选择文件', 'error');
+                return;
+            }
+            if (!renameSelectedMode) {
+                showToast('请选择重命名模式', 'error');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/files/batch-rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mode: renameSelectedMode,
+                        files: files,
+                        params: getModeParams(renameSelectedMode),
+                        preview: true
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    renderPreview(data.previews);
+                } else {
+                    showToast('预览失败: ' + data.error, 'error');
+                }
+            } catch (e) {
+                showToast('预览失败: ' + e.message, 'error');
+            }
+        }
+
+        // 渲染预览结果
+        function renderPreview(previews) {
+            const container = document.getElementById('previewResult');
+            const body = document.getElementById('previewBody');
+            body.innerHTML = '';
+
+            previews.forEach(p => {
+                const row = document.createElement('tr');
+                if (!p.changed) row.className = 'unchanged';
+                row.innerHTML = `
+                    <td>${p.old_name}</td>
+                    <td class="arrow">→</td>
+                    <td>${p.new_name}${p.changed ? '' : ' <small>(无变化)</small>'}</td>
+                `;
+                body.appendChild(row);
+            });
+
+            container.style.display = 'block';
+            const changed = previews.filter(p => p.changed).length;
+            showToast(`预览: ${changed} 个文件将被重命名，${previews.length - changed} 个无变化`);
+        }
+
+        // 执行批量重命名
+        async function executeBatchRename() {
+            const files = getSelectedFiles();
+            if (files.length === 0) {
+                showToast('请先选择文件', 'error');
+                return;
+            }
+            if (!renameSelectedMode) {
+                showToast('请选择重命名模式', 'error');
+                return;
+            }
+
+            if (!confirm(`确定要对选中的 ${files.length} 个文件执行批量重命名吗？`)) return;
+
+            try {
+                const resp = await fetch('/api/files/batch-rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mode: renameSelectedMode,
+                        files: files,
+                        params: getModeParams(renameSelectedMode),
+                        preview: false
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showToast(`成功重命名 ${data.renamed.length} 个文件`);
+                    document.getElementById('previewResult').style.display = 'none';
+                    // 刷新文件列表
+                    renameRefresh();
+                } else {
+                    let msg = '批量重命名失败';
+                    if (data.errors && data.errors.length > 0) {
+                        msg += `: ${data.errors.length} 个文件失败`;
+                    }
+                    if (data.error) msg = data.error;
+                    showToast(msg, 'error');
+                    // 如果有部分成功，刷新列表
+                    if (data.renamed && data.renamed.length > 0) {
+                        renameRefresh();
+                    }
+                }
+            } catch (e) {
+                showToast('批量重命名失败: ' + e.message, 'error');
+            }
+        }
+
+        // ===== 单文件重命名弹窗 =====
+
+        function openRenameModal(filePath, baseName, ext) {
+            renameModalFilePath = filePath;
+            document.getElementById('modalFileName').value = baseName;
+            document.getElementById('modalFileExt').value = ext;
+            document.getElementById('renameModal').classList.add('show');
+            // 聚焦文件名输入框
+            setTimeout(() => document.getElementById('modalFileName').focus(), 100);
+        }
+
+        function closeRenameModal() {
+            document.getElementById('renameModal').classList.remove('show');
+            renameModalFilePath = '';
+        }
+
+        async function confirmSingleRename() {
+            const newBase = document.getElementById('modalFileName').value.trim();
+            const newExt = document.getElementById('modalFileExt').value.trim().replace(/^\./, '');
+
+            if (!newBase) {
+                showToast('文件名不能为空', 'error');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/files/rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: renameModalFilePath,
+                        new_base: newBase,
+                        new_ext: newExt
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showToast('重命名成功');
+                    closeRenameModal();
+                    renameRefresh();
+                } else {
+                    showToast('重命名失败: ' + data.error, 'error');
+                }
+            } catch (e) {
+                showToast('重命名失败: ' + e.message, 'error');
+            }
+        }
+
+        // 弹窗背景点击关闭
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('renameModal');
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) closeRenameModal();
+                });
+            }
+            // Enter 键确认
+            const modalFileName = document.getElementById('modalFileName');
+            if (modalFileName) {
+                modalFileName.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') confirmSingleRename();
+                });
+            }
+        });
 
         // 页面加载时初始化
         window.onload = function() {

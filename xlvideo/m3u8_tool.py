@@ -3,7 +3,6 @@ import requests
 from urllib.parse import urljoin, urlparse
 from playwright.async_api import async_playwright
 import json
-import random
 
 
 class M3U8Parser:
@@ -212,6 +211,44 @@ class M3U8Parser:
             return [(base_url, "Direct M3U8 File")]
         return []
 
+    def pick_best_m3u8(self, links, session=None):
+        """
+        从候选 m3u8 链接中选择最优的一个：
+        1. 优先 master playlist（响应内容含 #EXT-X-STREAM-INF 的多码率索引）
+        2. 其次按分片数量排序，取分片数最多的（更可能是完整正片而非广告/预览）
+        
+        Args:
+            links: 候选 m3u8 URL 列表
+            session: 复用的 requests.Session（默认使用自身会话）
+            
+        Returns:
+            str: 选中的 URL，无候选时返回 None
+        """
+        if not links:
+            return None
+        if len(links) == 1:
+            return links[0]
+
+        session = session or self.session
+
+        def score(url):
+            try:
+                resp = session.get(url, timeout=8, headers={'Range': 'bytes=0-65535'})
+                if resp.status_code != 200:
+                    return (0, 0)
+                head = resp.text[:65536]
+                # master playlist：含多码率索引，优先级最高
+                if '#EXT-X-STREAM-INF' in head:
+                    return (2, len(head))
+                # 普通 media playlist：分片越多越可能是完整内容
+                seg_count = len(re.findall(r'^#EXTINF', head, re.MULTILINE))
+                return (1, seg_count)
+            except Exception:
+                return (0, 0)
+
+        ranked = sorted(links, key=score, reverse=True)
+        return ranked[0]
+
     async def parse_m3u8_links(self, url):
         """解析m3u8链接和标题的主要方法"""
         print(f"开始解析: {url}")
@@ -240,11 +277,11 @@ class M3U8Parser:
             # 从页面HTML中提取m3u8链接
             m3u8_links = self.extract_m3u8_links_from_text(content, url)
 
-            # 如果找到了链接，则随机返回一个
+            # 如果找到了链接，按优先级选择最优的一条（非随机）
             if m3u8_links:
                 print(f"从页面HTML中找到 {len(m3u8_links)} 个m3u8链接")
-                selected_link = random.choice(m3u8_links)
-                print(f"随机选择: {selected_link}")
+                selected_link = self.pick_best_m3u8(m3u8_links)
+                print(f"按优先级选择: {selected_link}")
                 results.append((selected_link, title))
                 return results
 
@@ -264,8 +301,9 @@ class M3U8Parser:
             else:
                 title = "Network Intercepted Video"
 
-            # 随机选择一个链接返回
-            selected_link = random.choice(network_m3u8_links)
+            # 按优先级选择最优的一条（非随机）
+            selected_link = self.pick_best_m3u8(network_m3u8_links)
+            print(f"按优先级选择: {selected_link}")
             results.append((selected_link, title))
             return results
         elif content:

@@ -7,19 +7,22 @@ from concurrent.futures import ThreadPoolExecutor
 
 from xlvideo.config import ConfigManager
 from xlvideo.logger import LogManager
-from xlvideo.engine import DownloadTask, DownloadEngine, DownloadStatus
+from xlvideo.engine import DownloadTask, DownloadEngine, DownloadStatus, sanitize_filename
 
 
 class TaskManager:
     """任务管理器 - 单例模式"""
     
     _instance = None
+    _instance_lock = threading.Lock()
     
     def __new__(cls):
-        """确保只有一个任务管理器实例"""
+        """确保只有一个任务管理器实例（线程安全）"""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialize()
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialize()
         return cls._instance
     
     def _initialize(self):
@@ -36,8 +39,9 @@ class TaskManager:
         self.task_counter = 0
         self.counter_lock = threading.Lock()
         
-        # 线程池（控制并发数）
+        # 线程池（控制并发数），使用自有标志记录关闭状态，不依赖 CPython 私有属性
         self.executor: Optional[ThreadPoolExecutor] = None
+        self._executor_shutdown = False
         self.max_workers = self.config.get_max_concurrent_tasks()
         
         # 进度回调函数列表
@@ -51,13 +55,14 @@ class TaskManager:
             self.task_counter += 1
             return self.task_counter
     
-    def add_task(self, url: str, custom_name: str = "") -> DownloadTask:
+    def add_task(self, url: str, custom_name: str = "", headers: Optional[dict] = None) -> DownloadTask:
         """
         添加新的下载任务
         
         Args:
             url: 视频链接
             custom_name: 自定义视频名称
+            headers: 附加请求头（如 Referer），webhook 推送场景使用
             
         Returns:
             DownloadTask: 新创建的任务对象
@@ -65,8 +70,11 @@ class TaskManager:
         # 生成任务 ID
         task_id = self._get_next_task_id()
         
+        # 自定义名称统一净化，防止路径穿越 / 非法字符导致下载失败
+        safe_name = sanitize_filename(custom_name) if custom_name else ""
+        
         # 创建任务
-        task = DownloadTask(task_id, url, custom_name)
+        task = DownloadTask(task_id, url, safe_name, headers)
         
         # 添加到任务列表
         with self.tasks_lock:
@@ -86,10 +94,16 @@ class TaskManager:
         Args:
             task: 下载任务对象
         """
+        # 任务提交前已被取消（如等待期间用户点了取消），不再入队
+        if not task.should_resume():
+            self.logger.info(f"任务 {task.task_id} 提交前已取消，跳过")
+            return
+        
         # 如果线程池未初始化或已关闭，重新创建
-        if self.executor is None or self.executor._shutdown:
+        if self.executor is None or self._executor_shutdown:
             self.max_workers = self.config.get_max_concurrent_tasks()
             self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
+            self._executor_shutdown = False
         
         # 提交任务
         future = self.executor.submit(
@@ -166,7 +180,7 @@ class TaskManager:
     
     def cancel_task(self, task_id: int) -> bool:
         """
-        取消指定任务
+        取消指定任务（下载中终止进程；排队/暂停中直接标记取消，避免稍后照常启动）
         
         Args:
             task_id: 任务 ID
@@ -269,6 +283,7 @@ class TaskManager:
             # 新任务将使用新的并发数
             old_executor = self.executor
             self.executor = None
+            self._executor_shutdown = True
             
             # 在新线程中关闭旧的线程池
             def shutdown_executor():
@@ -282,4 +297,5 @@ class TaskManager:
         """关闭任务管理器"""
         if self.executor:
             self.executor.shutdown(wait=False)
+            self._executor_shutdown = True
             self.logger.info("任务管理器已关闭")
